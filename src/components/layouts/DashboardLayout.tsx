@@ -2,7 +2,7 @@
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from '@/components/ui/button';
-import { Bell, MessageSquare, File, Settings, LogOut, Menu } from 'lucide-react';
+import { Bell, MessageSquare, File, Settings, LogOut, Menu, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -115,6 +115,18 @@ const DashboardLayout = () => {
             >
               <MessageSquare size={18} />
               <span>{t('navigation.newProject')}</span>
+            </Link>
+          )}
+
+          {/* Admin access to user management */}
+          {user.role === 'admin' && (
+            <Link 
+              to="/admin" 
+              className={`px-4 py-2 rounded-md flex items-center gap-3 ${isActive('/admin')}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Shield size={18} />
+              <span>Administration</span>
             </Link>
           )}
         </nav>

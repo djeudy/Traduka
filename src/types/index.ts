@@ -75,8 +75,6 @@ export interface Document {
   completedAt?: string;
 }
 
-
-
 // API response interfaces to match backend structure
 export interface ApiProject {
   id: string;

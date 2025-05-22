@@ -80,6 +80,16 @@ const projectService = {
     return await postFormData<Document>(`/api/projects/${projectId}/documents/`, formData);
   },
   
+  async uploadTranslatedDocument(projectId: string, documentId: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    return await postFormData<Document>(
+      `/api/projects/${projectId}/documents/${documentId}/upload-translation/`, 
+      formData
+    );
+  },
+  
   async deleteDocument(projectId: string, documentId: string) {
     return await del<void>(`/api/projects/${projectId}/documents/${documentId}/`);
   },
