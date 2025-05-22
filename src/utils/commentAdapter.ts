@@ -1,14 +1,30 @@
 
-import { Comment } from '@/types';
+import { Comment, ApiComment } from '@/types';
 
-// This is for converting between API and frontend comment formats
-export const adaptCommentFromAPI = (comment: any): Comment => {
+// Cette fonction convertit un commentaire API en format Comment frontend
+export const adaptCommentFromAPI = (comment: ApiComment | any): Comment => {
+  // Si c'est déjà au format Comment, retourner tel quel
+  if (comment.user_id && comment.project_id) {
+    return comment as Comment;
+  }
+  
   return {
     id: comment.id,
-    text: comment.content || comment.text,
-    created_at: comment.createdAt ? comment.createdAt.toString() : comment.created_at,
-    user_id: comment.userId || comment.user_id,
-    project_id: comment.projectId || comment.project_id,
-    user: comment.user
+    text: comment.text || comment.content || '',
+    created_at: comment.created_at || comment.createdAt || new Date().toISOString(),
+    user_id: String(comment.user) || comment.userId || '',
+    project_id: comment.project || comment.projectId || '',
+    user: comment.user_details || comment.user || undefined
+  };
+};
+
+// Cette fonction convertit un commentaire frontend en format API
+export const adaptCommentToAPI = (comment: Comment): ApiComment => {
+  return {
+    id: comment.id,
+    text: comment.text,
+    user: parseInt(comment.user_id, 10),
+    project: comment.project_id,
+    created_at: comment.created_at
   };
 };

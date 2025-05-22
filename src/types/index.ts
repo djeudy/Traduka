@@ -59,16 +59,17 @@ export interface Project {
   private_project: boolean;
   client: number;                      // id client
   translator: number | null;           // id traducteur ou null
-  documents: Document[];    // tableau de documents 
+  documents: Document[];               // tableau de documents 
   payments: Payment[];
   comments: Comment[];
 }
 
 export interface Document {
-  source_url: string;
   id: string;
+  source_url: string;
   name: string;
   url?: string;
+  size?: number;
   uploaded_at?: string;
   translated_url?: string;
   completedAt?: string;
