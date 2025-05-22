@@ -6,6 +6,9 @@ import { fileService } from './fileService';
 import { projectService } from './projectService';
 import { userService } from './userService';
 import { paymentService } from './paymentService';
+import { commentService } from './commentService';
+import { notificationService } from './notificationService';
+import { settingsService } from './settingsService';
 
 export {
   // Base API methods
@@ -21,5 +24,8 @@ export {
   fileService,
   projectService,
   userService,
-  paymentService
+  paymentService,
+  commentService,
+  notificationService,
+  settingsService
 };
