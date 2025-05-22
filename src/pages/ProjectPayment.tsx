@@ -41,7 +41,7 @@ const ProjectPayment = () => {
             source_language: "French",
             target_language: "English",
             status: "in-progress",
-            source_documents: [],
+            documents: [],
             comments: [],
             submitted_at: '2002-10-20',
             payments: [],
@@ -49,8 +49,7 @@ const ProjectPayment = () => {
             estimated_completion_date: '',
             completed_at: '',
             private_project: false,
-            translator: 0,
-            translated_documents: []
+            translator: 0
           };
           
           setProject(mockProject);
@@ -124,8 +123,7 @@ const ProjectPayment = () => {
                 <h3 className="text-lg font-medium">Détails du projet</h3>
                 <p>Source: {project.source_language}</p>
                 <p>Cible: {project.target_language}</p>
-                <p>Documents Sources: {project.source_documents.length}</p>
-                <p>Documents traduits: {project.translated_documents.length}</p>
+                <p>Documents: {project.documents.length}</p>
                 <p>Statut: {getStatusLabel(project.status)}</p>
               </div>
               

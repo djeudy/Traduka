@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,35 +8,60 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Project, UserRole } from '@/types';
 import { projectService } from '@/services/api';
 import { ApiResponse } from '@/services/apiUtils';
+import { useToast } from '@/components/ui/use-toast';
+import { useUser } from '@/contexts/UserContext';
+import { FolderX } from 'lucide-react';
+import DocumentManager from '@/components/projects/DocumentManager';
 
 const ProjectDetail = () => {
-  var { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
+  const [deletingProject, setDeletingProject] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useUser();
   
-useEffect(() => {
-  const fetchProject = async () => {
-    setLoading(true);
-    try {
-      const foundProject: ApiResponse<Project> = await projectService.getProject(id);
-      
-      console.log(foundProject)
-      
-      if (foundProject) setProject(foundProject.data);
-        else setProject(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchProject = async () => {
+      setLoading(true);
+      try {
+        if (id) {
+          const response: ApiResponse<Project> = await projectService.getProject(id);
+          
+          if (response.data) {
+            setProject(response.data);
+          } else {
+            toast({
+              title: "Erreur",
+              description: response.error || "Impossible de charger le projet",
+              variant: "destructive",
+            });
+            setProject(null);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching project:', error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors du chargement du projet",
+          variant: "destructive",
+        });
+        setProject(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (id) {
-    fetchProject();
-  }
-}, [id]);
+    if (id) {
+      fetchProject();
+    }
+  }, [id, toast]);
   
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -62,27 +88,91 @@ useEffect(() => {
     }
   };
   
-  const handleSendComment = () => {
-    if (!newComment.trim() || !project) return;
+  const handleSendComment = async () => {
+    if (!newComment.trim() || !project || !id) return;
     
-    const newCommentObj = {
-      id: `CMT-${Date.now()}`,
-      userId: '1',
-      userName: 'Client Démo',
-      userRole: 'client' as UserRole,
-      content: newComment.trim(),
-      createdAt: new Date(),
-    };
+    try {
+      const response = await projectService.createComment(id, newComment.trim());
+      
+      if (response.data) {
+        // Add the new comment to the project
+        const newCommentObj = {
+          ...response.data,
+          user: {
+            name: user?.name || 'Utilisateur',
+            email: user?.email || '',
+            role: user?.role || 'client',
+          }
+        };
+        
+        setProject(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            comments: [...prev.comments, newCommentObj]
+          };
+        });
+        
+        toast({
+          title: "Commentaire envoyé",
+          description: "Votre commentaire a été ajouté avec succès",
+        });
+        
+        setNewComment('');
+      } else {
+        toast({
+          title: "Erreur",
+          description: response.error || "Impossible d'envoyer le commentaire",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'envoi du commentaire",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleDeleteProject = async () => {
+    if (!id) return;
     
-    // setProject(prev => {
-    //   if (!prev) return prev;
-    //   return {
-    //     ...prev,
-    //     comments: [...prev.content, newCommentObj]
-    //   };
-    // });
+    try {
+      setDeletingProject(true);
+      const response = await projectService.deleteProject(id);
+      
+      if (!response.error) {
+        toast({
+          title: "Projet supprimé",
+          description: "Le projet a été supprimé avec succès",
+        });
+        navigate('/dashboard');
+      } else {
+        toast({
+          title: "Erreur",
+          description: response.error || "Impossible de supprimer le projet",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression du projet",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingProject(false);
+    }
+  };
+  
+  const handleDocumentDeleted = (documentId: string) => {
+    if (!project) return;
     
-    setNewComment('');
+    setProject({
+      ...project,
+      documents: project.documents.filter(doc => doc.id !== documentId)
+    });
   };
   
   if (loading) {
@@ -118,9 +208,6 @@ useEffect(() => {
           </div>
           
           <div className="text-gray-600">
-            {/* <span className="inline-block mr-4">
-              <span className="font-medium">ID:</span> {project.id}
-            </span> */}
             <span className="inline-block mr-4">
               <span className="font-medium">Langues:</span> {project.source_language} → {project.target_language}
             </span>
@@ -130,7 +217,7 @@ useEffect(() => {
           </div>
         </div>
         
-        <div className="mt-4 md:mt-0">
+        <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
           <Button variant="outline" className="mr-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -140,6 +227,37 @@ useEffect(() => {
           
           {project.status !== 'completed' && (
             <Button className="bg-translation-600 hover:bg-translation-700">Ajouter un document</Button>
+          )}
+          
+          {(user?.role === 'admin' || (user?.role === 'client' && project.client === user.id)) && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">
+                  <FolderX className="h-4 w-4 mr-2" />
+                  Supprimer le projet
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce projet ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action est irréversible. Toutes les données associées à ce projet seront définitivement supprimées.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteProject}
+                    className="bg-red-600 hover:bg-red-700"
+                    disabled={deletingProject}
+                  >
+                    {deletingProject ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : 'Supprimer'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
       </div>
@@ -255,7 +373,7 @@ useEffect(() => {
                       {project.payments[0].amount} €
                     </div>
                     <p className="text-sm text-gray-500 mt-1">
-                      {project.payments[0].status ? 'Payé le ' + new Date(project.payments[0].created_at).toLocaleDateString('fr-FR') : 'En attente de paiement'}
+                      {project.payments[0].status === 'completed' ? 'Payé le ' + new Date(project.payments[0].created_at).toLocaleDateString('fr-FR') : 'En attente de paiement'}
                     </p>
                   </CardContent>
                 </Card>
@@ -276,13 +394,13 @@ useEffect(() => {
                     {project.comments.slice(0, 2).map(comment => (
                       <div key={comment.id} className="flex gap-4">
                         <Avatar className="h-9 w-9">
-                          <AvatarFallback className={comment.user.role === 'translator' ? 'bg-translation-100 text-translation-800' : 'bg-gray-100'}>
-                            {comment.user.name.split(' ').map(n => n[0]).join('')}
+                          <AvatarFallback className={comment.user?.role === 'translator' ? 'bg-translation-100 text-translation-800' : 'bg-gray-100'}>
+                            {comment.user?.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <div className="font-medium">{comment.user.name}</div>
+                            <div className="font-medium">{comment.user?.name}</div>
                             <div className="text-xs text-gray-500">
                               {new Date(comment.created_at).toLocaleString('fr-FR', { 
                                 day: '2-digit', 
@@ -306,68 +424,11 @@ useEffect(() => {
         
         {/* Documents Tab */}
         <TabsContent value="documents">
-          <Card>
-            <CardHeader>
-              <CardTitle>Documents du projet</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {project.documents.map(doc => (
-                  <div key={doc.id} className="bg-white border rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center mr-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-600">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{doc.name}</h4>
-                          <p className="text-sm text-gray-500">
-                            Ajouté le {new Date(doc.uploaded_at).toLocaleDateString('fr-FR')}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" className="h-9" asChild>
-                          <a href={doc.source_url.replace("preview","download")} download>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Original
-                          </a>
-                        </Button>
-                        
-                        {doc.url && (
-                          <Button size="sm" className="h-9 bg-translation-600 hover:bg-translation-700" asChild>
-                            <a href={doc.source_url.replace("preview","download")} download>
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 mr-1">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                              </svg>
-                              Traduit
-                            </a>
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    
-                  </div>
-                ))}
-                
-                {project.status !== 'completed' && (
-                  <div className="file-upload">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-400 mb-2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                    </svg>
-                    <p className="font-medium">Glissez-déposez un document ici</p>
-                    <p className="text-sm text-gray-500 mt-1">ou cliquez pour parcourir</p>
-                    <Button variant="outline" className="mt-4">Ajouter un document</Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <DocumentManager 
+            projectId={id || ''} 
+            documents={project.documents}
+            onDocumentDeleted={handleDocumentDeleted}
+          />
         </TabsContent>
         
         {/* Messages Tab */}
@@ -383,16 +444,16 @@ useEffect(() => {
                     {project.comments.map(comment => (
                       <div key={comment.id} className="flex gap-4">
                         <Avatar className="h-10 w-10">
-                          <AvatarFallback className={comment.user.role === 'translator' ? 'bg-translation-100 text-translation-800' : 'bg-gray-100'}>
-                            {comment.user.name.split(' ').map(n => n[0]).join('')}
+                          <AvatarFallback className={comment.user?.role === 'translator' ? 'bg-translation-100 text-translation-800' : 'bg-gray-100'}>
+                            {comment.user?.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <div>
-                              <span className="font-medium">{comment.user.name}</span>
+                              <span className="font-medium">{comment.user?.name}</span>
                               <span className="text-xs text-gray-500 ml-2">
-                                {comment.user.role === 'translator' ? 'Traducteur' : 'Client'}
+                                {comment.user?.role === 'translator' ? 'Traducteur' : 'Client'}
                               </span>
                             </div>
                             <div className="text-xs text-gray-500">
@@ -420,7 +481,7 @@ useEffect(() => {
                 
                 <div className="flex gap-4">
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback>CD</AvatarFallback>
+                    <AvatarFallback>{user?.name?.split(' ').map(n => n[0]).join('') || 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex border rounded-md overflow-hidden">
@@ -459,10 +520,10 @@ useEffect(() => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div className={`w-10 h-10 rounded flex items-center justify-center mr-3 ${
-                            payment.status ? 'bg-green-100' : 'bg-yellow-100'
+                            payment.status === 'completed' ? 'bg-green-100' : 'bg-yellow-100'
                           }`}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 ${
-                              payment.status ? 'text-green-600' : 'text-yellow-600'
+                              payment.status === 'completed' ? 'text-green-600' : 'text-yellow-600'
                             }`}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
                             </svg>
@@ -472,12 +533,12 @@ useEffect(() => {
                               <h4 className="font-medium">Paiement du projet</h4>
                               <Badge 
                                 variant="outline" 
-                                className={payment.status ? 
+                                className={payment.status === 'completed' ? 
                                   'ml-2 bg-green-100 text-green-800 border-green-200' : 
                                   'ml-2 bg-yellow-100 text-yellow-800 border-yellow-200'
                                 }
                               >
-                                {payment.status ? 'Payé' : 'En attente'}
+                                {payment.status === 'completed' ? 'Payé' : 'En attente'}
                               </Badge>
                             </div>
                             <p className="text-sm text-gray-500">
@@ -491,7 +552,7 @@ useEffect(() => {
                         </div>
                       </div>
                       
-                      {!payment.status && (
+                      {payment.status !== 'completed' && (
                         <div className="mt-4 flex justify-end">
                           <Button className="bg-translation-600 hover:bg-translation-700">
                             Procéder au paiement

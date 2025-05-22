@@ -6,6 +6,7 @@ import { fileService } from './fileService';
 import { projectService } from './projectService';
 import { userService } from './userService';
 import { paymentService } from './paymentService';
+import { roleService } from './roleService';
 
 export {
   // Base API methods
@@ -21,5 +22,6 @@ export {
   fileService,
   projectService,
   userService,
-  paymentService
+  paymentService,
+  roleService
 };

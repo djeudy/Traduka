@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import SubmitProject from './pages/SubmitProject';
 import ProjectDetail from './pages/ProjectDetail';
 import ProjectPayment from './pages/ProjectPayment';
+import AdminDashboard from './pages/AdminDashboard';
 import NotificationExample from './components/examples/NotificationExample';
 import PasswordReset from './pages/PasswordReset';
 import EmailVerification from './components/auth/EmailVerification';
@@ -38,6 +39,7 @@ function App() {
             
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/submit-project" element={<SubmitProject />} />
               <Route path="/projects/:id" element={<ProjectDetail />} />
               <Route path="/projects/:id/payment" element={<ProjectPayment />} />
