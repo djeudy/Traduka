@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import type {
@@ -5,8 +6,8 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_LIMIT = 5
+const TOAST_REMOVE_DELAY = 5000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -90,8 +91,6 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -168,6 +167,42 @@ function toast({ ...props }: Toast) {
   }
 }
 
+// Helper functions for common notification types
+const success = (title: string, description?: string) => {
+  return toast({
+    title,
+    description,
+    variant: "default",
+    className: "bg-green-50 border-green-200 text-green-800",
+  })
+}
+
+const error = (title: string, description?: string) => {
+  return toast({
+    title,
+    description,
+    variant: "destructive",
+  })
+}
+
+const info = (title: string, description?: string) => {
+  return toast({
+    title,
+    description,
+    variant: "default",
+    className: "bg-blue-50 border-blue-200 text-blue-800",
+  })
+}
+
+const warning = (title: string, description?: string) => {
+  return toast({
+    title,
+    description,
+    variant: "default",
+    className: "bg-yellow-50 border-yellow-200 text-yellow-800",
+  })
+}
+
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
@@ -184,8 +219,12 @@ function useToast() {
   return {
     ...state,
     toast,
+    success,
+    error,
+    info,
+    warning,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
 
-export { useToast, toast }
+export { useToast, toast, success, error, info, warning }

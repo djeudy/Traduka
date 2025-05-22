@@ -1,35 +1,55 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import AppLayout from "./components/layout/AppLayout";
-import History from "./pages/History";
-import Collections from "./pages/Collections";
-import Settings from "./pages/Settings";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import './App.css';
+import { Toaster } from '@/components/ui/toaster';
+import { UserProvider } from '@/contexts/UserContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import AuthLayout from './components/layouts/AuthLayout';
+import DashboardLayout from './components/layouts/DashboardLayout';
+import NotFound from './pages/NotFound';
+import Index from './pages/Index';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
+import SubmitProject from './pages/SubmitProject';
+import ProjectDetail from './pages/ProjectDetail';
+import ProjectPayment from './pages/ProjectPayment';
+import NotificationExample from './components/examples/NotificationExample';
+import PasswordReset from './pages/PasswordReset';
+import EmailVerification from './components/auth/EmailVerification';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<AppLayout><Index /></AppLayout>} />
-          <Route path="/history" element={<AppLayout><History /></AppLayout>} />
-          <Route path="/collections" element={<AppLayout><Collections /></AppLayout>} />
-          <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <BrowserRouter>
+      <UserProvider>
+        <LanguageProvider>
+          <Toaster />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/notifications" element={<NotificationExample />} />
+            
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/reset-password" element={<PasswordReset />} />
+              <Route path="/reset-password/:uid/:token" element={<PasswordReset />} />
+              <Route path="/verify-email/:uid/:token" element={<EmailVerification />} />
+            </Route>
+            
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/submit-project" element={<SubmitProject />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
+              <Route path="/projects/:id/payment" element={<ProjectPayment />} />
+            </Route>
+            
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </LanguageProvider>
+      </UserProvider>
+    </BrowserRouter>
+  );
+}
 
 export default App;
