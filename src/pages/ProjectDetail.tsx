@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,13 +8,12 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Project, UserRole } from '@/types';
+import { Project, UserRole, Comment } from '@/types';
 import { projectService } from '@/services/api';
 import { ApiResponse } from '@/services/apiUtils';
 import { useToast } from '@/components/ui/use-toast';
 import { useUser } from '@/contexts/UserContext';
 import { FolderX } from 'lucide-react';
-
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -95,9 +93,13 @@ const ProjectDetail = () => {
       const response = await projectService.createComment(id, newComment.trim());
       
       if (response.data) {
-        // Add the new comment to the project
-        const newCommentObj = {
-          ...response.data,
+        // Adapter le nouveau commentaire au format Comment
+        const newCommentObj: Comment = {
+          id: response.data.id,
+          text: response.data.text,
+          created_at: response.data.created_at,
+          user_id: user?.id?.toString() || '',
+          project_id: id,
           user: {
             name: user?.name || 'Utilisateur',
             email: user?.email || '',
