@@ -1,6 +1,6 @@
 
 import { get, post, put, patch, del, postFormData } from './apiUtils';
-import { ApiProject, ApiComment, Project, Document, Comment } from '../types';
+import { ApiProject, ApiComment, Project, Document, Comment, DocumentQuote } from '../types';
 import { ApiResponse } from './apiUtils';
 
 export interface ProjectDocument {
@@ -101,6 +101,15 @@ const projectService = {
 
   async unassignTranslator(projectId: string) {
     return await patch<ApiProject>(`/api/projects/${projectId}/assign-translator/`, { translator: null });
+  },
+  
+  // Quotations management
+  async updateProjectQuotes(projectId: string, quotes: DocumentQuote[]) {
+    return await post<Project>(`/api/projects/${projectId}/quotes/`, { quotes });
+  },
+  
+  async getProjectQuotes(projectId: string) {
+    return await get<DocumentQuote[]>(`/api/projects/${projectId}/quotes/`);
   }
 };
 

@@ -100,6 +100,7 @@ export interface ApiProject {
   estimated_completion_date: string | null;
   completed_at: string | null;
   private_project: boolean;
+  quote?: DocumentQuote[];
 }
 
 export interface ApiComment {
