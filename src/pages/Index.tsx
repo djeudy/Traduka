@@ -13,7 +13,8 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <span className="font-bold text-xl text-translation-900">Traduka</span>
+              <img src="/traduka2.svg" style={{ maxWidth: '15%' }} alt="Traduka" />
+              {/* <span className="font-bold text-xl text-translation-900">Traduka</span> */}
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
@@ -51,9 +52,6 @@ const Index = () => {
                   Commencer maintenant
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                En savoir plus
-              </Button>
             </div>
           </div>
         </div>

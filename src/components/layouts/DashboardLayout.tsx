@@ -68,7 +68,7 @@ const DashboardLayout = () => {
       {/* Mobile Header */}
       <header className="md:hidden bg-customBlue w-full p-4 flex items-center justify-between fixed top-0 z-30 shadow-md">
         <Link to="/dashboard" className="flex items-center gap-2 text-white">
-          <span className="font-bold text-xl">Traduka</span>
+            <img src="/traduka.svg" style={{ maxWidth: '50%' }} alt="Traduka" />
         </Link>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
@@ -84,7 +84,7 @@ const DashboardLayout = () => {
       }`}>
         <div className="flex justify-between items-center md:flex-col md:items-start mb-6 pt-0 md:pt-4">
           <Link to="/dashboard" className="flex items-center gap-2 text-white">
-            <span className="font-bold text-xl">Traduka</span>
+          <img src="/traduka.svg" style={{ maxWidth: '75%' }} alt="Traduka" />
           </Link>
           <div className="flex items-center gap-2 md:mt-4 md:self-end">
             <div className="hidden md:block">
