@@ -12,12 +12,12 @@ interface RoleChangeResponse {
 const roleService = {
   // Récupérer tous les utilisateurs avec leur rôle
   async getAllUsersWithRoles() {
-    return await get<User[]>(`/api/users/roles/`);
+    return await get<User[]>(`/api/users/`);
   },
   
   // Changer le rôle d'un utilisateur (admin uniquement)
   async changeUserRole(userId: number, newRole: UserRole): Promise<ApiResponse<RoleChangeResponse>> {
-    return await patch<RoleChangeResponse>(`/api/users/${userId}/role/`, { role: newRole });
+    return await patch<RoleChangeResponse>(`/api/users/${userId}/change-role/`, { role: newRole });
   },
   
   // Récupérer tous les traducteurs

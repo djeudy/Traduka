@@ -398,7 +398,7 @@ const ProjectDetail = () => {
                       <div key={comment.id} className="flex gap-4">
                         <Avatar className="h-9 w-9">
                           <AvatarFallback className={comment.user?.role === 'translator' ? 'bg-translation-100 text-translation-800' : 'bg-gray-100'}>
-                            {comment.user?.name.split(' ').map(n => n[0]).join('')}
+                            {/* {comment.user?.name.split(' ').map(n => n[0]).join('')} */}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
@@ -456,7 +456,7 @@ const ProjectDetail = () => {
                       <div key={comment.id} className="flex gap-4">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback className={comment.user?.role === 'translator' ? 'bg-translation-100 text-translation-800' : 'bg-gray-100'}>
-                            {comment.user?.name.split(' ').map(n => n[0]).join('')}
+                            {/* {comment.user?.name.split(' ').map(n => n[0]).join('')} */}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">

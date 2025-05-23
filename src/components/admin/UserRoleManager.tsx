@@ -47,8 +47,8 @@ const UserRoleManager = () => {
     try {
       setChanging(userId);
       const response = await roleService.changeUserRole(userId, newRole);
-      
-      if (response.data && response.data.success) {
+      console.log(response)
+      if (response.data["status"] == "role updated") {
         toast({
           title: "Succès",
           description: `Le rôle a été changé avec succès en ${newRole}`,

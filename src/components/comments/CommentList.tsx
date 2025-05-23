@@ -56,11 +56,11 @@ export const CommentList = ({ projectId, refreshTrigger }: CommentListProps) => 
             <div className="flex items-center space-x-2">
               <Avatar>
                 <AvatarFallback>
-                  {comment.user?.name?.charAt(0) || 'U'}
+                  {/* {comment.user?.name?.charAt(0) || 'U'} */}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium">{comment.user?.name || 'Utilisateur'}</p>
+                {/* <p className="font-medium">{comment.user?.name || 'Utilisateur'}</p> */}
                 <p className="text-xs text-gray-500">
                   {new Date(comment.created_at).toLocaleDateString()} - 
                   {new Date(comment.created_at).toLocaleTimeString()}
