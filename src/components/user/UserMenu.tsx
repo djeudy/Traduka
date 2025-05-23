@@ -17,11 +17,14 @@ const UserMenu = () => {
   
   if (!user) return null;
   
-  const initials = user.name
-    .split(' ')
-    .map(name => name[0])
-    .join('')
-    .toUpperCase();
+  // Generate initials safely, ensuring user.name exists
+  const initials = user.name 
+    ? user.name
+        .split(' ')
+        .map(name => name[0])
+        .join('')
+        .toUpperCase()
+    : 'U'; // Fallback to 'U' for User if name is empty/undefined
   
   return (
     <>
@@ -36,7 +39,7 @@ const UserMenu = () => {
         <PopoverContent className="w-56" align="end">
           <div className="space-y-1">
             <div className="p-2 text-center">
-              <p className="text-sm font-medium">{user.name}</p>
+              <p className="text-sm font-medium">{user.name || 'User'}</p>
               <p className="text-xs text-gray-500">{user.email}</p>
             </div>
             
