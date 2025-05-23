@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useUser } from '@/contexts/UserContext';
 import {
   Popover,
@@ -8,12 +8,10 @@ import {
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Settings, LogOut, User as UserIcon } from 'lucide-react';
-import UserSettingsDialog from './UserSettingsDialog';
+import { LogOut, User as UserIcon } from 'lucide-react';
 
 const UserMenu = () => {
   const { user, logout } = useUser();
-  const [settingsOpen, setSettingsOpen] = useState(false);
   
   if (!user) return null;
   
@@ -27,48 +25,35 @@ const UserMenu = () => {
     : 'U'; // Fallback to 'U' for User if name is empty/undefined
   
   return (
-    <>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-56" align="end">
-          <div className="space-y-1">
-            <div className="p-2 text-center">
-              <p className="text-sm font-medium">{user.name || 'User'}</p>
-              <p className="text-xs text-gray-500">{user.email}</p>
-            </div>
-            
-            <div className="border-t border-gray-200 pt-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start"
-                onClick={() => setSettingsOpen(true)}
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                Paramètres
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start"
-                onClick={logout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Déconnexion
-              </Button>
-            </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+          <Avatar className="h-10 w-10">
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56" align="end">
+        <div className="space-y-1">
+          <div className="p-2 text-center">
+            <p className="text-sm font-medium">{user.name || 'User'}</p>
+            <p className="text-xs text-gray-500">{user.email}</p>
           </div>
-        </PopoverContent>
-      </Popover>
-      
-      <UserSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
-    </>
+          
+          <div className="border-t border-gray-200 pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start"
+              onClick={logout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Déconnexion
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 
