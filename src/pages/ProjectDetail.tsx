@@ -28,6 +28,12 @@ const ProjectDetail = () => {
   const navigate = useNavigate();
   const { user } = useUser();
   
+  // Define a variable to determine if the current user can change the status of the project
+  const canChangeStatus = user && project && (
+    user.role === 'admin' || 
+    (user.role === 'translator' && project.translator === user.id)
+  );
+  
   useEffect(() => {
     const fetchProject = async () => {
       setLoading(true);
