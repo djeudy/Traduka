@@ -6,20 +6,39 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
-import { Payment, PaymentMethod } from '@/types';
+import { Document, Payment, PaymentMethod } from '@/types';
 import { useUser } from '@/contexts/UserContext';
 
 interface PaymentFormProps {
   projectId: string;
   paymentMethod: string;
+  documents?: Document[];
   onPaymentComplete: (payment: Payment) => void;
 }
 
-export const PaymentForm = ({ projectId, paymentMethod, onPaymentComplete }: PaymentFormProps) => {
+export const PaymentForm = ({ 
+  projectId, 
+  paymentMethod, 
+  documents = [], 
+  onPaymentComplete 
+}: PaymentFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [amount] = useState(250); // Just a demo fixed amount
   const { toast } = useToast();
   const { user } = useUser();
+  
+  // Calculate payment amount based on documents
+  const PRICE_PER_WORD = 0.05;
+  const getEstimatedWords = (size: number = 0): number => {
+    return Math.floor(size / 7); // Simple estimation
+  };
+  
+  const documentTotalCost = documents.reduce((sum, doc) => {
+    const words = getEstimatedWords(doc.size || 0);
+    return sum + (words * PRICE_PER_WORD);
+  }, 0);
+  
+  // Use calculated amount or default to 250 if no documents
+  const [amount] = useState(documentTotalCost > 0 ? parseFloat(documentTotalCost.toFixed(2)) : 250);
   
   // Form fields for different payment methods
   const [cardNumber, setCardNumber] = useState('');

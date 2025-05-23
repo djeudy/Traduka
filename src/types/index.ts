@@ -62,6 +62,7 @@ export interface Project {
   documents: Document[];               // tableau de documents 
   payments: Payment[];
   comments: Comment[];
+  quote?: DocumentQuote[];             // New field for document quotes
 }
 
 export interface Document {
@@ -73,6 +74,14 @@ export interface Document {
   uploaded_at?: string;
   translated_url?: string;
   completedAt?: string;
+  path?: string;  // Added to satisfy TypeScript
+}
+
+export interface DocumentQuote {
+  document_id: string;
+  document_name: string;
+  price: number;
+  currency: string;
 }
 
 // API response interfaces to match backend structure

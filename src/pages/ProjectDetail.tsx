@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
 import { FolderX } from 'lucide-react';
 import DocumentList from '@/components/projects/DocumentList';
+import { TranslatorAssignment } from '@/components/projects/TranslatorAssignment';
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -178,6 +179,15 @@ const ProjectDetail = () => {
     });
   };
   
+  const handleTranslatorAssigned = (translatorId: number | null) => {
+    if (project) {
+      setProject({
+        ...project,
+        translator: translatorId
+      });
+    }
+  };
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -271,6 +281,7 @@ const ProjectDetail = () => {
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="messages">Messages</TabsTrigger>
           <TabsTrigger value="payments">Paiements</TabsTrigger>
+          {user?.role === 'admin' && <TabsTrigger value="admin">Administration</TabsTrigger>}
         </TabsList>
         
         {/* Overview Tab */}
@@ -575,12 +586,47 @@ const ProjectDetail = () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">Aucun paiement pour le moment.</p>
+                  <p className="text-gray-500">Aucun paiement pour ce projet.</p>
+                  <Button 
+                    className="mt-4 bg-translation-600 hover:bg-translation-700"
+                    onClick={() => navigate(`/projects/${project.id}/payment`)}
+                  >
+                    Voir les options de paiement
+                  </Button>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Admin Tab - Only for admins */}
+        {user?.role === 'admin' && (
+          <TabsContent value="admin">
+            <Card>
+              <CardHeader>
+                <CardTitle>Administration du projet</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Translator Assignment Section */}
+                <TranslatorAssignment 
+                  projectId={project.id}
+                  currentTranslatorId={project.translator}
+                  onAssignSuccess={handleTranslatorAssigned}
+                />
+                
+                <Separator />
+                
+                {/* Other admin tools could go here */}
+                <div>
+                  <h3 className="font-medium text-lg mb-2">Autres outils d'administration</h3>
+                  <p className="text-sm text-gray-500">
+                    D'autres fonctionnalités d'administration seront disponibles prochainement.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

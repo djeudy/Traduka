@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Payment, Project } from '@/types';
 import { useUser } from '@/contexts/UserContext';
+import { projectService } from '@/services/projectService';
 import PaymentForm from '@/components/payment/PaymentForm';
 import PaymentOptions from '@/components/payment/PaymentOptions';
 import PaymentHistory from '@/components/payment/PaymentHistory';
+import DocumentQuoteDisplay from '@/components/payment/DocumentQuote';
 
 const ProjectPayment = () => {
   const { id: projectId } = useParams<{ id: string }>();
@@ -32,29 +34,17 @@ const ProjectPayment = () => {
       }
       
       try {
-        // Mock project data for now
-        setTimeout(() => {
-          const mockProject: Project = {
-            id: projectId,
-            name: "Sample Project",
-            client: 1,
-            source_language: "French",
-            target_language: "English",
-            status: "in-progress",
-            documents: [],
-            comments: [],
-            submitted_at: '2002-10-20',
-            payments: [],
-            started_at: '',
-            estimated_completion_date: '',
-            completed_at: '',
-            private_project: false,
-            translator: 0
-          };
-          
-          setProject(mockProject);
-          setLoading(false);
-        }, 1000);
+        const response = await projectService.getProject(projectId);
+        
+        if (response.data) {
+          setProject(response.data);
+        } else {
+          toast({
+            title: "Erreur",
+            description: response.error || "Impossible de charger le projet",
+            variant: "destructive",
+          });
+        }
       } catch (error: any) {
         console.error('Error fetching project:', error);
         toast({
@@ -62,6 +52,7 @@ const ProjectPayment = () => {
           description: error.message || "Impossible de charger le projet",
           variant: "destructive",
         });
+      } finally {
         setLoading(false);
       }
     };
@@ -127,6 +118,13 @@ const ProjectPayment = () => {
                 <p>Statut: {getStatusLabel(project.status)}</p>
               </div>
               
+              {/* Document Quotes Section */}
+              {project.documents.length > 0 && (
+                <div className="mt-6 mb-6">
+                  <DocumentQuoteDisplay documents={project.documents} />
+                </div>
+              )}
+              
               <div className="mt-6">
                 <h3 className="text-lg font-medium mb-2">Sélectionner un mode de paiement</h3>
                 {project.payments.some(p => p.status === 'completed') ? (
@@ -143,6 +141,7 @@ const ProjectPayment = () => {
                           projectId={project.id}
                           paymentMethod={selectedMethod}
                           onPaymentComplete={handlePaymentComplete}
+                          documents={project.documents}
                         />
                       </div>
                     )}

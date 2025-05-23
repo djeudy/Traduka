@@ -1,110 +1,141 @@
-import { Project, ProjectStatus, ProjectDocument, Comment, Payment } from "@/types";
 
-const randomDate = (start: Date, end: Date): Date => {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-};
+import { Project, Document, Comment, Payment, UserRole } from '../types';
 
-export const generateMockProjects = (count: number): Project[] => {
-  const projects: Project[] = [];
-  const statuses: ProjectStatus[] = ['waiting', 'in-progress', 'review', 'completed'];
-  const languages = ['Français', 'Anglais', 'Espagnol', 'Allemand', 'Italien', 'Portugais', 'Chinois', 'Russe'];
+// Fonction pour générer un ID aléatoire
+export const generateId = () => Math.random().toString(36).substring(2, 15);
 
-  for (let i = 0; i < count; i++) {
-    const submittedAt = randomDate(new Date(2023, 0, 1), new Date());
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-
-    let startedAt: string | null = null;
-    let estimatedCompletionDate: string | null = null;
-    let completedAt: string | null = null;
-
-    if (status !== 'waiting') {
-      const startedDate = new Date(submittedAt.getTime() + Math.random() * 3 * 24 * 60 * 60 * 1000);
-      startedAt = startedDate.toISOString();
-      const estimatedDate = new Date(startedDate.getTime() + (7 + Math.random() * 14) * 24 * 60 * 60 * 1000);
-      estimatedCompletionDate = estimatedDate.toISOString();
-
-      if (status === 'completed') {
-        const completedDate = new Date(startedDate.getTime() + Math.random() * 10 * 24 * 60 * 60 * 1000);
-        completedAt = completedDate.toISOString();
-      }
-    }
-
-    let sourceLanguage: string, targetLanguage: string;
-    do {
-      sourceLanguage = languages[Math.floor(Math.random() * languages.length)];
-      targetLanguage = languages[Math.floor(Math.random() * languages.length)];
-    } while (sourceLanguage === targetLanguage);
-
-    const documents: ProjectDocument[] = [
-      {
-        id: `DOC-${i}`,
-        name: `Document ${i + 1}.pdf`,
-        url: `/documents/doc-${i + 1}.pdf`,
-        uploaded_at: submittedAt.toISOString(),
-        project_id: `PRJ-${i}`,
-        size: Math.floor(Math.random() * 5000000),
-      }
-    ];
-
-    const comments: Comment[] = status !== 'waiting' ? [
-      {
-        id: `CMT-${i}-1`,
-        content: 'Bonjour, j\'ai commencé la traduction.',
-        createdAt: (startedAt || submittedAt.toISOString()),
-        userId: "2",
-        projectId: `PRJ-${i}`,
-        user: {
-          name: 'Sophie Martin',
-          email: 'sophie@example.com',
-          role: 'translator',
-        }
-      },
-      {
-        id: `CMT-${i}-2`,
-        content: 'Merci, voici notre glossaire.',
-        createdAt: new Date(new Date(startedAt || submittedAt).getTime() + 24 * 60 * 60 * 1000).toISOString(),
-        userId: "1",
-        projectId: `PRJ-${i}`,
-        user: {
-          name: 'Client Démo',
-          email: 'client@example.com',
-          role: 'client',
-        }
-      }
-    ] : [];
-
-    const payments: Payment[] = status !== 'waiting' ? [
-      {
-        id: `PAY-${i}`,
-        amount: Math.floor(300 + Math.random() * 700),
-        currency: 'EUR',
-        status: Math.random() > 0.2 ? 'completed' : 'pending',
-        created_at: submittedAt.toISOString(),
-        project_id: `PRJ-${i}`,
-        user_id: "1",
-      }
-    ] : [];
-
-    projects.push({
-      id: `PRJ-${i}`,
-      name: `Projet de traduction ${i + 1}`,
-      client: 1,
-      source_language: sourceLanguage,
-      target_language: targetLanguage,
-      status,
-      submitted_at: submittedAt.toISOString(),
-      started_at: startedAt,
-      estimated_completion_date: estimatedCompletionDate,
-      completed_at: completedAt,
-      private_project: Math.random() > 0.5,
-      translator: status !== 'waiting' ? 2 : null,
-      translated_documents: [],
-      source_documents: [],
-      comments,
-      payments,
-      instructions: 'Merci de respecter la terminologie fournie.',
-    });
+// Documents fictifs
+export const mockDocuments: Document[] = [
+  {
+    id: 'doc-1',
+    source_url: '/documents/sample-document-1.pdf',
+    name: 'Contrat de service.pdf',
+    url: '/documents/sample-document-1.pdf',
+    size: 240000,
+    uploaded_at: '2023-04-15T10:30:00Z',
+    path: '/documents/sample-document-1.pdf',
+  },
+  {
+    id: 'doc-2',
+    source_url: '/documents/sample-document-2.docx',
+    name: 'Cahier des charges.docx',
+    url: '/documents/sample-document-2.docx',
+    size: 350000,
+    uploaded_at: '2023-04-16T14:20:00Z',
+    path: '/documents/sample-document-2.docx',
+  },
+  {
+    id: 'doc-3',
+    source_url: '/documents/sample-document-3.pdf',
+    name: 'Manuel utilisateur.pdf',
+    url: '/documents/sample-document-3.pdf',
+    size: 1200000,
+    uploaded_at: '2023-04-17T09:45:00Z',
+    path: '/documents/sample-document-3.pdf',
   }
+];
 
-  return projects;
-};
+// Commentaires fictifs
+export const mockComments: Comment[] = [
+  {
+    id: 'comment-1',
+    text: 'Je viens d\'examiner votre document et j\'ai commencé la traduction. Je pense pouvoir le livrer dans 3 jours.',
+    created_at: '2023-04-18T11:30:00Z',
+    user_id: '2',
+    project_id: 'project-1',
+    user: {
+      name: 'Sophie Martin',
+      email: 'sophie.m@example.com',
+      role: 'translator' as UserRole
+    }
+  },
+  {
+    id: 'comment-2',
+    text: 'Merci pour votre retour rapide. Avez-vous besoin d\'informations supplémentaires sur le contexte du document?',
+    created_at: '2023-04-18T13:45:00Z',
+    user_id: '1',
+    project_id: 'project-1',
+    user: {
+      name: 'Jean Dupont',
+      email: 'jean.d@example.com',
+      role: 'client' as UserRole
+    }
+  },
+];
+
+// Paiements fictifs
+export const mockPayments: Payment[] = [
+  {
+    id: 'payment-1',
+    amount: 250,
+    currency: 'EUR',
+    status: 'completed',
+    created_at: '2023-04-20T09:15:00Z',
+    project_id: 'project-2',
+    user_id: '1'
+  },
+  {
+    id: 'payment-2',
+    amount: 180,
+    currency: 'EUR',
+    status: 'pending',
+    created_at: '2023-04-22T16:30:00Z',
+    project_id: 'project-3',
+    user_id: '1'
+  }
+];
+
+// Projets fictifs
+export const mockProjects: Project[] = [
+  {
+    id: 'project-1',
+    name: 'Traduction contrat juridique',
+    source_language: 'Français',
+    target_language: 'Anglais',
+    status: 'in-progress',
+    submitted_at: '2023-04-15T10:30:00Z',
+    started_at: '2023-04-16T08:45:00Z',
+    estimated_completion_date: '2023-04-25T17:00:00Z',
+    completed_at: null,
+    private_project: false,
+    client: 1,
+    translator: 2,
+    documents: [mockDocuments[0]],
+    comments: [mockComments[0], mockComments[1]],
+    payments: []
+  },
+  {
+    id: 'project-2',
+    name: 'Traduction site web e-commerce',
+    source_language: 'Anglais',
+    target_language: 'Français',
+    status: 'completed',
+    submitted_at: '2023-03-20T14:15:00Z',
+    started_at: '2023-03-22T10:30:00Z',
+    estimated_completion_date: '2023-04-05T17:00:00Z',
+    completed_at: '2023-04-03T11:20:00Z',
+    private_project: false,
+    client: 1,
+    translator: 3,
+    documents: [mockDocuments[1], mockDocuments[2]],
+    comments: [],
+    payments: [mockPayments[0]]
+  },
+  {
+    id: 'project-3',
+    name: 'Documentation technique',
+    source_language: 'Allemand',
+    target_language: 'Français',
+    status: 'waiting',
+    submitted_at: '2023-04-22T16:30:00Z',
+    started_at: null,
+    estimated_completion_date: null,
+    completed_at: null,
+    private_project: true,
+    client: 3,
+    translator: null,
+    documents: [],
+    comments: [],
+    payments: [mockPayments[1]]
+  }
+];
