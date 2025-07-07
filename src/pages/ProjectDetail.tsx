@@ -17,12 +17,14 @@ import { FolderX } from 'lucide-react';
 import DocumentList from '@/components/projects/DocumentList';
 import { TranslatorAssignment } from '@/components/projects/TranslatorAssignment';
 import StatusChanger from '@/components/projects/StatusChanger';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
+  const { t } = useLanguage();
   const [deletingProject, setDeletingProject] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -40,13 +42,12 @@ const ProjectDetail = () => {
       try {
         if (id) {
           const response: ApiResponse<Project> = await projectService.getProject(id);
-          
           if (response.data) {
             setProject(response.data);
           } else {
             toast({
               title: "Erreur",
-              description: response.error || "Impossible de charger le projet",
+              description: response.error || t('dashboard.errorLoadProject'),
               variant: "destructive",
             });
             setProject(null);
@@ -56,7 +57,7 @@ const ProjectDetail = () => {
         console.error('Error fetching project:', error);
         toast({
           title: "Erreur",
-          description: "Une erreur est survenue lors du chargement du projet",
+          description: t('dashboard.errorLoadProject'),
           variant: "destructive",
         });
         setProject(null);
@@ -110,7 +111,7 @@ const ProjectDetail = () => {
           user_id: user?.id?.toString() || '',
           project_id: id,
           user: {
-            name: user?.name || 'Utilisateur',
+            name: user?.name || 'User',
             email: user?.email || '',
             role: user?.role
           }
@@ -125,23 +126,23 @@ const ProjectDetail = () => {
         });
         
         toast({
-          title: "Commentaire envoyé",
-          description: "Votre commentaire a été ajouté avec succès",
+          title:       t('generic.success'),
+          description: t('project.recentMessages.sendSuccess'),
         });
         
         setNewComment('');
       } else {
         toast({
-          title: "Erreur",
-          description: response.error || "Impossible d'envoyer le commentaire",
-          variant: "destructive",
+          title:       t('generic.error'),
+          description: response.error || t('project.recentMessages.sendError'),
+          variant:     'destructive',
         });
       }
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'envoi du commentaire",
-        variant: "destructive",
+        title:       t('generic.error'),
+        description: t('project.recentMessages.sendError'),
+        variant:     'destructive',
       });
     }
   };
@@ -155,22 +156,22 @@ const ProjectDetail = () => {
       
       if (!response.error) {
         toast({
-          title: "Projet supprimé",
-          description: "Le projet a été supprimé avec succès",
+          title:       t('generic.success'),
+          description: t('project.delete.success'),
         });
         navigate('/dashboard');
       } else {
         toast({
-          title: "Erreur",
-          description: response.error || "Impossible de supprimer le projet",
-          variant: "destructive",
+          title:       t('generic.error'),
+          description: response.error || t('project.delete.error'),
+          variant:     'destructive',
         });
       }
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression du projet",
-        variant: "destructive",
+        title:       t('generic.error'),
+        description: t('project.delete.error'),
+        variant:     'destructive',
       });
     } finally {
       setDeletingProject(false);
@@ -215,10 +216,10 @@ const ProjectDetail = () => {
   if (!project) {
     return (
       <div className="text-center py-16">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Projet non trouvé</h2>
-        <p className="text-gray-600 mb-8">Le projet que vous recherchez n'existe pas ou a été supprimé.</p>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('project.notFound.title')}</h2>
+        <p className="text-gray-600 mb-8">{t('project.notFound.description')}</p>
         <Button asChild>
-          <a href="/dashboard">Retour au tableau de bord</a>
+          <a href="/dashboard">{t('navigation.dashboard')}</a>
         </Button>
       </div>
     );
@@ -238,10 +239,10 @@ const ProjectDetail = () => {
           
           <div className="text-gray-600">
             <span className="inline-block mr-4">
-              <span className="font-medium">Langues:</span> {project.source_language} → {project.target_language}
+              <span className="font-medium">{t('header.languages')} :</span> {project.source_language} → {project.target_language}
             </span>
             <span className="inline-block">
-              <span className="font-medium">Soumis le:</span> {new Date(project.submitted_at).toLocaleDateString('fr-FR')}
+              <span className="font-medium">{t('header.languages')}:</span> {new Date(project.submitted_at).toLocaleDateString('fr-FR')}
             </span>
           </div>
         </div>
@@ -371,8 +372,8 @@ const ProjectDetail = () => {
                           <AvatarFallback className="bg-translation-100 text-translation-800">SM</AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">Sophie Martin</div>
-                          <div className="text-sm text-gray-500">Traductrice professionnelle</div>
+                          <div className="font-medium"></div>
+                          <div className="text-sm text-gray-500"></div>
                         </div>
                       </div>
                     </div>
@@ -426,9 +427,7 @@ const ProjectDetail = () => {
                     {project.comments.slice(0, 2).map(comment => (
                       <div key={comment.id} className="flex gap-4">
                         <Avatar className="h-9 w-9">
-                          <AvatarFallback className={comment.user?.role === 'translator' ? 'bg-translation-100 text-translation-800' : 'bg-gray-100'}>
-                            {/* {comment.user?.name.split(' ').map(n => n[0]).join('')} */}
-                          </AvatarFallback>
+                          c
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
@@ -485,16 +484,16 @@ const ProjectDetail = () => {
                       <div key={comment.id} className="flex gap-4">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback className={comment.user?.role === 'translator' ? 'bg-translation-100 text-translation-800' : 'bg-gray-100'}>
-                            {/* {comment.user?.name.split(' ').map(n => n[0]).join('')} */}
+                            {comment.user?.name? comment.user?.name.split(' ').map(n => n[0]).join(''): ""}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <div>
                               <span className="font-medium">{comment.user?.name}</span>
-                              <span className="text-xs text-gray-500 ml-2">
+                              {/* <span className="text-xs text-gray-500 ml-2">
                                 {comment.user?.role === 'translator' ? 'Traducteur' : 'Client'}
-                              </span>
+                              </span> */}
                             </div>
                             <div className="text-xs text-gray-500">
                               {new Date(comment.created_at).toLocaleString('fr-FR', { 

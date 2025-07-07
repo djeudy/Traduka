@@ -27,7 +27,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>('fr');
+  const [language, setLanguage] = useState<Language>('en');
 
   const t = (key: string): string => {
     const keys = key.split('.');
