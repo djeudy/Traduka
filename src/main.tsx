@@ -3,9 +3,6 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { superTokensInit } from './config/supertokens'
-
-superTokensInit();
 
 const root = document.getElementById("root");
 if (root) {

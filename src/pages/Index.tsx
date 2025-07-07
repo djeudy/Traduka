@@ -1,11 +1,10 @@
 
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useSessionContext } from "supertokens-auth-react/recipe/session";
-import { redirectToAuth } from "supertokens-auth-react";
+import { useUser } from '@/contexts/UserContext';
 
 const Index = () => {
-  const session = useSessionContext();
+  const { user } = useUser();
   
   return (
     <div className="min-h-screen">
@@ -18,18 +17,18 @@ const Index = () => {
               {/* <span className="font-bold text-xl text-translation-900">Traduka</span> */}
             </div>
             <div className="flex items-center space-x-4">
-              {session.loading === false && session.doesSessionExist ? (
+              {user ? (
                 <Link to="/dashboard">
                   <Button>Mon compte</Button>
                 </Link>
               ) : (
                 <>
-                  <Button variant="outline" onClick={() => redirectToAuth({ show: "signin" })}>
-                    Connexion
-                  </Button>
-                  <Button onClick={() => redirectToAuth({ show: "signup" })}>
-                    S'inscrire
-                  </Button>
+                  <Link to="/login">
+                    <Button variant="outline">Connexion</Button>
+                  </Link>
+                  <Link to="/signup">
+                    <Button>S'inscrire</Button>
+                  </Link>
                 </>
               )}
             </div>
@@ -48,13 +47,11 @@ const Index = () => {
               Soumettez vos documents, suivez l'avancement et récupérez vos traductions sur une plateforme unique.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="bg-white text-translation-900 hover:bg-translation-100"
-                onClick={() => redirectToAuth({ show: "signup" })}
-              >
-                Commencer maintenant
-              </Button>
+              <Link to="/signup">
+                <Button size="lg" className="bg-white text-translation-900 hover:bg-translation-100">
+                  Commencer maintenant
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -145,13 +142,11 @@ const Index = () => {
           <p className="text-xl mb-8">
             Rejoignez-nous dès aujourd'hui et découvrez comment nous pouvons vous aider à communiquer efficacement à l'international.
           </p>
-          <Button 
-            size="lg" 
-            className="bg-white text-translation-900 hover:bg-translation-100"
-            onClick={() => redirectToAuth({ show: "signup" })}
-          >
-            Créer un compte gratuitement
-          </Button>
+          <Link to="/signup">
+            <Button size="lg" className="bg-white text-translation-900 hover:bg-translation-100">
+              Créer un compte gratuitement
+            </Button>
+          </Link>
         </div>
       </section>
       
