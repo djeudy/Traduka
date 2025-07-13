@@ -18,6 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import NotificationExample from './components/examples/NotificationExample';
 import PasswordReset from './pages/PasswordReset';
 import EmailVerification from './components/auth/EmailVerification';
+import GoogleCallback from './pages/GoogleCallback';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
               <Route path="/reset-password" element={<PasswordReset />} />
               <Route path="/reset-password/:uid/:token" element={<PasswordReset />} />
               <Route path="/verify-email/:uid/:token" element={<EmailVerification />} />
+              <Route path="/auth/google/callback" element={<GoogleCallback />} />
             </Route>
             
             <Route element={<DashboardLayout />}>

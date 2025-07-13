@@ -16,10 +16,19 @@ const QuickLogin: React.FC<QuickLoginProps> = ({ disabled }) => {
   const { toast } = useToast();
 
   const handleGoogleLogin = async () => {
-    // This is a placeholder for Google login
-    // In a real implementation, this would open a Google OAuth popup
-    // and then send the token to your backend
-    window.location.href = '/api/auth/google/';
+    setLoading(true);
+    try {
+      // Redirect to Django Google OAuth endpoint
+      window.location.href = `${window.location.origin}/api/auth/google/`;
+    } catch (error) {
+      console.error('Google login error:', error);
+      toast({
+        title: "Erreur de connexion",
+        description: "Impossible de se connecter avec Google",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
   };
 
   return (
