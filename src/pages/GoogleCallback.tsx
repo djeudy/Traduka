@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
+import { API_BASE_URL } from '@/config/api';
 
 const GoogleCallback = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const GoogleCallback = () => {
           localStorage.setItem('authToken', token);
           
           // Fetch user data
-          const response = await fetch('/api/auth/user/', {
+          const response = await fetch(`${API_BASE_URL}/api/auth/user/`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },

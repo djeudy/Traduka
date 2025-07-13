@@ -19,7 +19,8 @@ const QuickLogin: React.FC<QuickLoginProps> = ({ disabled }) => {
     setLoading(true);
     try {
       // Redirect to Django Google OAuth endpoint
-      window.location.href = `${window.location.origin}/api/auth/google/`;
+      const { API_BASE_URL } = await import('@/config/api');
+      window.location.href = `${API_BASE_URL}/api/auth/google/`;
     } catch (error) {
       console.error('Google login error:', error);
       toast({
