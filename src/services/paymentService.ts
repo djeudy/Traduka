@@ -1,39 +1,42 @@
 
 import { get, post, put, patch, del } from './apiUtils';
-
-export interface Payment {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  user: number;
-  project: string;
-  created_at: string;
-}
+import { Payment } from '../types';
+import { ApiResponse } from './apiUtils';
 
 const paymentService = {
-  async getAllPayments() {
+  async getAllPayments(): Promise<ApiResponse<Payment[]>> {
     return await get<Payment[]>(`/api/payments/`);
   },
   
-  async createPayment(payment: Partial<Payment>) {
+  async createPayment(payment: Partial<Payment>): Promise<ApiResponse<Payment>> {
     return await post<Payment>(`/api/payments/`, payment);
   },
   
-  async getPayment(paymentId: string) {
+  async getPayment(paymentId: string): Promise<ApiResponse<Payment>> {
     return await get<Payment>(`/api/payments/${paymentId}/`);
   },
   
-  async updatePayment(paymentId: string, payment: Partial<Payment>) {
+  async updatePayment(paymentId: string, payment: Partial<Payment>): Promise<ApiResponse<Payment>> {
     return await put<Payment>(`/api/payments/${paymentId}/`, payment);
   },
   
-  async patchPayment(paymentId: string, payment: Partial<Payment>) {
+  async patchPayment(paymentId: string, payment: Partial<Payment>): Promise<ApiResponse<Payment>> {
     return await patch<Payment>(`/api/payments/${paymentId}/`, payment);
   },
   
-  async deletePayment(paymentId: string) {
+  async deletePayment(paymentId: string): Promise<ApiResponse<void>> {
     return await del<void>(`/api/payments/${paymentId}/`);
+  },
+  
+  async verifyPayment(paymentId: string, status: string, adminNotes?: string): Promise<ApiResponse<any>> {
+    return await patch<any>(`/api/payments/${paymentId}/verify/`, { 
+      status, 
+      admin_notes: adminNotes 
+    });
+  },
+  
+  async getPaymentsByProject(projectId: string): Promise<ApiResponse<Payment[]>> {
+    return await get<Payment[]>(`/api/payments/?project=${projectId}`);
   }
 };
 

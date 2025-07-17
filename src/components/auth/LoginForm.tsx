@@ -9,6 +9,7 @@ import { useUser } from '@/contexts/UserContext';
 import { authService } from '@/services/api';
 import { UserRole } from '@/types';
 import { Notification } from '@/components/ui/notification';
+import GoogleSignInButton from './GoogleSignInButton';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -18,7 +19,7 @@ const LoginForm = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { setUser, isEmailVerified } = useUser();
+  const { setUser } = useUser();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +128,7 @@ const LoginForm = () => {
     }
   };
 
+
   return (
     <>
       {needsVerification && (
@@ -189,6 +191,8 @@ const LoginForm = () => {
           </Button>
         )}
       </form>
+      
+      <GoogleSignInButton onLoading={setLoading} />
     </>
   );
 };

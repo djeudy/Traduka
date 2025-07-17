@@ -36,27 +36,52 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const refreshAuthToken = async () => {
       const refreshToken = localStorage.getItem('refreshToken');
       
-      if (refreshToken) {
+      // Ne pas essayer de rafraîchir le token sur les pages d'auth
+      const isAuthPage = window.location.pathname.includes('/login') || 
+                        window.location.pathname.includes('/signup') || 
+                        window.location.pathname.includes('/reset-password') ||
+                        window.location.pathname.includes('/verify-email');
+      
+      if (refreshToken && !isAuthPage) {
         try {
           const response = await authService.refreshToken(refreshToken);
           
           if (response.data && response.data.access) {
             localStorage.setItem('authToken', response.data.access);
+          } else {
+            // Si le refresh échoue, nettoyer les tokens
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userData');
           }
         } catch (error) {
           console.error("Token refresh error:", error);
-          // If refresh fails, log the user out
-          logout();
+          // Nettoyer les tokens en cas d'erreur
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userData');
         }
       }
     };
     
-    // Refresh token on mount
-    refreshAuthToken();
+    // Refresh token on mount seulement si pas sur une page d'auth
+    const isAuthPage = window.location.pathname.includes('/login') || 
+                      window.location.pathname.includes('/signup') || 
+                      window.location.pathname.includes('/reset-password') ||
+                      window.location.pathname.includes('/verify-email');
+    
+    if (!isAuthPage) {
+      refreshAuthToken();
+    }
     
     // Setup interval to refresh token (every 10 minutes)
     const tokenRefreshInterval = setInterval(() => {
-      if (authService.isAuthenticated()) {
+      const currentIsAuthPage = window.location.pathname.includes('/login') || 
+                               window.location.pathname.includes('/signup') || 
+                               window.location.pathname.includes('/reset-password') ||
+                               window.location.pathname.includes('/verify-email');
+      
+      if (authService.isAuthenticated() && !currentIsAuthPage) {
         refreshAuthToken();
       }
     }, 10 * 60 * 1000); // 10 minutes

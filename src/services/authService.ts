@@ -47,8 +47,8 @@ const authService = {
     return await post<MessageResponse>(`/api/auth/password/reset/${uid}/${token}/`, { password });
   },
   
-  async googleLogin(token: string): Promise<{ data?: AuthResponse; error?: string }> {
-    const result = await post<AuthResponse>('/api/auth/google/', { token });
+  async googleLogin(accessToken: string): Promise<{ data?: AuthResponse; error?: string }> {
+    const result = await post<AuthResponse>('/api/auth/google/', { access_token: accessToken });
     
     if (result.data) {
       localStorage.setItem('authToken', result.data.access);

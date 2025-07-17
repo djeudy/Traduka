@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { authService } from '@/services/api';
 import { Notification } from '@/components/ui/notification';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const PasswordReset = () => {
   const [email, setEmail] = useState('');
@@ -19,6 +20,7 @@ const PasswordReset = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { uid, token } = useParams();
+  const { t } = useLanguage();
   
   // If uid and token are present, we're on the reset confirmation page
   const isResetConfirmation = !!uid && !!token;
@@ -28,8 +30,8 @@ const PasswordReset = () => {
     
     if (!email) {
       return toast({
-        title: "Erreur",
-        description: "Veuillez entrer votre adresse email",
+        title: t('passwordReset.error'),
+        description: t('passwordReset.pleaseEnterEmail'),
         variant: "destructive",
       });
     }
@@ -44,15 +46,15 @@ const PasswordReset = () => {
       setResetSent(true);
       
       toast({
-        title: "Email envoyé",
-        description: "Un email a été envoyé avec les instructions pour réinitialiser votre mot de passe.",
+        title: t('passwordReset.emailSent'),
+        description: t('passwordReset.emailSentDesc'),
       });
       
     } catch (error: any) {
       console.error('Password reset request error:', error);
       toast({
-        title: "Échec de la demande",
-        description: error.message || "Une erreur s'est produite lors de la demande de réinitialisation",
+        title: t('passwordReset.requestFailed'),
+        description: error.message || t('passwordReset.requestError'),
         variant: "destructive",
       });
     } finally {
@@ -65,16 +67,16 @@ const PasswordReset = () => {
     
     if (!password || !confirmPassword) {
       return toast({
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs",
+        title: t('passwordReset.error'),
+        description: t('passwordReset.pleaseFillAllFields'),
         variant: "destructive",
       });
     }
     
     if (password !== confirmPassword) {
       return toast({
-        title: "Erreur",
-        description: "Les mots de passe ne correspondent pas",
+        title: t('passwordReset.error'),
+        description: t('passwordReset.passwordsNotMatch'),
         variant: "destructive",
       });
     }
@@ -89,8 +91,8 @@ const PasswordReset = () => {
       setResetSuccess(true);
       
       toast({
-        title: "Réinitialisation réussie",
-        description: "Votre mot de passe a été réinitialisé avec succès.",
+        title: t('passwordReset.resetSuccessToast'),
+        description: t('passwordReset.resetSuccessToastDesc'),
       });
       
       // Redirect to login page after 3 seconds
@@ -101,8 +103,8 @@ const PasswordReset = () => {
     } catch (error: any) {
       console.error('Password reset confirmation error:', error);
       toast({
-        title: "Échec de la réinitialisation",
-        description: error.message || "Une erreur s'est produite lors de la réinitialisation du mot de passe",
+        title: t('passwordReset.resetFailed'),
+        description: error.message || t('passwordReset.resetError'),
         variant: "destructive",
       });
     } finally {
@@ -115,13 +117,13 @@ const PasswordReset = () => {
       <div className="text-center">
         <Notification 
           variant="success"
-          title="Email de réinitialisation envoyé"
-          description="Veuillez vérifier votre boîte email pour les instructions de réinitialisation."
+          title={t('passwordReset.resetSentTitle')}
+          description={t('passwordReset.resetSentDesc')}
           className="mb-6"
         />
         
         <p className="mt-4 text-gray-600">
-          Vous n'avez pas reçu d'email? Vérifiez votre dossier de spam ou
+          {t('passwordReset.noEmailReceived')}
         </p>
         <Button 
           variant="link" 
@@ -130,12 +132,12 @@ const PasswordReset = () => {
             setResetSent(false);
           }}
         >
-          essayez à nouveau
+          {t('passwordReset.tryAgain')}
         </Button>
 
         <div className="mt-6">
           <Button variant="outline" className="w-full" onClick={() => navigate('/login')}>
-            Retour à la page de connexion
+            {t('passwordReset.backToLoginPage')}
           </Button>
         </div>
       </div>
@@ -147,14 +149,14 @@ const PasswordReset = () => {
       <div className="text-center">
         <Notification 
           variant="success"
-          title="Réinitialisation réussie"
-          description="Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion."
+          title={t('passwordReset.resetSuccessTitle')}
+          description={t('passwordReset.resetSuccessDesc')}
           className="mb-6"
         />
         
         <div className="mt-6">
           <Button variant="outline" className="w-full" onClick={() => navigate('/login')}>
-            Aller à la page de connexion
+            {t('passwordReset.goToLogin')}
           </Button>
         </div>
       </div>
@@ -164,13 +166,13 @@ const PasswordReset = () => {
   return (
     <div>
       <h2 className="text-2xl font-bold text-center mb-6">
-        {isResetConfirmation ? 'Réinitialiser votre mot de passe' : 'Mot de passe oublié'}
+        {isResetConfirmation ? t('passwordReset.resetPassword') : t('passwordReset.forgotPassword')}
       </h2>
       
       {isResetConfirmation ? (
         <form onSubmit={handleConfirmReset} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="password">Nouveau mot de passe</Label>
+            <Label htmlFor="password">{t('passwordReset.newPassword')}</Label>
             <Input 
               id="password"
               type="password"
@@ -182,7 +184,7 @@ const PasswordReset = () => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+            <Label htmlFor="confirmPassword">{t('passwordReset.confirmPassword')}</Label>
             <Input 
               id="confirmPassword"
               type="password"
@@ -194,21 +196,21 @@ const PasswordReset = () => {
           </div>
           
           <Button type="submit" className="w-full bg-translation-600 hover:bg-translation-700" disabled={loading}>
-            {loading ? 'Réinitialisation en cours...' : 'Réinitialiser le mot de passe'}
+            {loading ? t('passwordReset.resetingPassword') : t('passwordReset.resetPasswordButton')}
           </Button>
         </form>
       ) : (
         <form onSubmit={handleRequestReset} className="space-y-4">
           <p className="text-gray-600 mb-4">
-            Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+            {t('passwordReset.enterEmailDesc')}
           </p>
           
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('passwordReset.email')}</Label>
             <Input 
               id="email"
               type="email"
-              placeholder="votre@email.com"
+              placeholder={t('passwordReset.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
@@ -216,7 +218,7 @@ const PasswordReset = () => {
           </div>
           
           <Button type="submit" className="w-full bg-translation-600 hover:bg-translation-700" disabled={loading}>
-            {loading ? 'Envoi en cours...' : 'Envoyer le lien de réinitialisation'}
+            {loading ? t('passwordReset.sending') : t('passwordReset.sendResetLink')}
           </Button>
           
           <div className="mt-4 text-center">
@@ -225,7 +227,7 @@ const PasswordReset = () => {
               className="text-translation-600"
               onClick={() => navigate('/login')}
             >
-              Retour à la connexion
+              {t('passwordReset.backToLogin')}
             </Button>
           </div>
         </form>

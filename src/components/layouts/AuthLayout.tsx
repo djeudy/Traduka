@@ -1,9 +1,24 @@
 
+import { useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
 
 const AuthLayout = () => {
   const { user } = useUser();
+  const { t } = useLanguage();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      toast({
+        title: t('auth.alreadyLoggedIn'),
+        description: t('auth.redirectingToDashboard'),
+        className: "bg-blue-50 border-blue-200 text-blue-800",
+      });
+    }
+  }, [user, toast, t]);
 
   if (user) {
     return <Navigate to="/dashboard" replace />;

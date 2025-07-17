@@ -25,11 +25,34 @@ export interface Comment {
 export interface Payment {
   id: string;
   amount: number;
-  currency: string;
-  status: 'pending' | 'completed' | 'failed';
+  currency: 'USD' | 'HTG';
+  status: 'pending' | 'completed' | 'failed' | 'processing' | 'cancelled';
+  method: 'moncash' | 'bank';
   created_at: string;
   project_id: string;
   user_id: string;
+  
+  // MonCash specific fields
+  moncash_phone?: string;
+  moncash_transaction_id?: string;
+  moncash_order_id?: string;
+  moncash_payment_token?: string;
+  moncash_redirect_url?: string;
+  
+  // Bank transfer specific fields
+  bank_name?: string;
+  bank_account_number?: string;
+  bank_routing_number?: string;
+  bank_reference?: string;
+  
+  // Proof of payment
+  proof_of_payment_file_id?: string;
+  proof_of_payment_url?: string;
+  
+  // Admin fields
+  admin_notes?: string;
+  verified_by?: number;
+  verified_at?: string;
 }
 
 export interface ProjectDocument {
@@ -42,7 +65,7 @@ export interface ProjectDocument {
   project_id?: string;
 }
 
-export type PaymentMethod = 'stripe' | 'paypal' | 'moncash';
+export type PaymentMethod = 'moncash' | 'bank';
 
 export type ProjectStatus = 'waiting' | 'in-progress' | 'review' | 'completed';
 
@@ -57,6 +80,7 @@ export interface Project {
   estimated_completion_date: string | null; // ISO date string ou null
   completed_at: string | null;         // ISO date string ou null
   private_project: boolean;
+  instructions: string | null;
   client: number;                      // id client
   translator: number | null;           // id traducteur ou null
   documents: Document[];               // tableau de documents 
@@ -84,6 +108,22 @@ export interface DocumentQuote {
   currency: string;
 }
 
+export interface Quote {
+  id: string;
+  project: string;
+  total_amount: number;
+  currency: 'USD' | 'HTG';
+  status: 'pending' | 'sent' | 'accepted' | 'rejected';
+  description?: string;
+  quote_file_url?: string;
+  quote_file_id?: string;
+  created_by: User;
+  created_at: string;
+  sent_at?: string;
+  accepted_at?: string;
+  rejected_at?: string;
+}
+
 // API response interfaces to match backend structure
 export interface ApiProject {
   id: string;
@@ -100,6 +140,8 @@ export interface ApiProject {
   estimated_completion_date: string | null;
   completed_at: string | null;
   private_project: boolean;
+  instructions: string | null;
+  payments?: Payment[];
 }
 
 export interface ApiComment {
@@ -118,4 +160,30 @@ export interface ApiPayment {
   user: number;
   project: string;
   created_at: string;
+}
+
+// Google Sign-In types
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: { credential: string }) => void;
+            auto_select?: boolean;
+            cancel_on_tap_outside?: boolean;
+          }) => void;
+          prompt: () => void;
+          renderButton: (container: HTMLElement, options: {
+            theme?: 'outline' | 'filled_blue' | 'filled_black';
+            size?: 'large' | 'medium' | 'small';
+            width?: string;
+            text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+            shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+          }) => void;
+        };
+      };
+    };
+  }
 }

@@ -2,9 +2,11 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/contexts/UserContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Index = () => {
   const { user } = useUser();
+  const { t } = useLanguage();
   
   return (
     <div className="min-h-screen">
@@ -19,15 +21,15 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               {user ? (
                 <Link to="/dashboard">
-                  <Button>Mon compte</Button>
+                  <Button>{t('homepage.myAccount')}</Button>
                 </Link>
               ) : (
                 <>
                   <Link to="/login">
-                    <Button variant="outline">Connexion</Button>
+                    <Button variant="outline">{t('homepage.login')}</Button>
                   </Link>
                   <Link to="/signup">
-                    <Button>S'inscrire</Button>
+                    <Button>{t('homepage.signup')}</Button>
                   </Link>
                 </>
               )}
@@ -41,15 +43,15 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Gestion de projets de traduction simplifiée
+              {t('homepage.heroTitle')}
             </h1>
             <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto">
-              Soumettez vos documents, suivez l'avancement et récupérez vos traductions sur une plateforme unique.
+              {t('homepage.heroSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/signup">
                 <Button size="lg" className="bg-white text-translation-900 hover:bg-translation-100">
-                  Commencer maintenant
+                  {t('homepage.getStarted')}
                 </Button>
               </Link>
             </div>
@@ -60,7 +62,7 @@ const Index = () => {
       {/* Features */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Nos services</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">{t('homepage.ourServices')}</h2>
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-md transition-all hover:shadow-lg">
@@ -69,9 +71,9 @@ const Index = () => {
                   <path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Traduction professionnelle</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('homepage.professionalTranslation')}</h3>
               <p className="text-gray-600">
-                Des traducteurs experts dans votre domaine pour des traductions précises et adaptées.
+                {t('homepage.professionalTranslationDesc')}
               </p>
             </div>
             
@@ -81,9 +83,9 @@ const Index = () => {
                   <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line><path d="m9 16 2 2 4-4"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Suivi en temps réel</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('homepage.realTimeTracking')}</h3>
               <p className="text-gray-600">
-                Suivez l'avancement de vos projets et communiquez avec votre traducteur directement depuis la plateforme.
+                {t('homepage.realTimeTrackingDesc')}
               </p>
             </div>
             
@@ -93,9 +95,9 @@ const Index = () => {
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path><path d="m14.5 9-5 5"></path><path d="m9.5 9 5 5"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Sécurité garantie</h3>
+              <h3 className="text-xl font-semibold mb-2">{t('homepage.guaranteedSecurity')}</h3>
               <p className="text-gray-600">
-                Vos documents sont traités avec la plus grande confidentialité et protégés par des mesures de sécurité avancées.
+                {t('homepage.guaranteedSecurityDesc')}
               </p>
             </div>
           </div>
@@ -105,31 +107,31 @@ const Index = () => {
       {/* How it works */}
       <section className="py-16 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Comment ça marche</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">{t('homepage.howItWorks')}</h2>
           
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="w-12 h-12 rounded-full bg-translation-700 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">1</div>
-              <h3 className="text-xl font-semibold mb-2">Inscription</h3>
-              <p className="text-gray-600">Créez votre compte et accédez à votre espace client.</p>
+              <h3 className="text-xl font-semibold mb-2">{t('homepage.registration')}</h3>
+              <p className="text-gray-600">{t('homepage.registrationDesc')}</p>
             </div>
             
             <div className="text-center">
               <div className="w-12 h-12 rounded-full bg-translation-700 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">2</div>
-              <h3 className="text-xl font-semibold mb-2">Soumission</h3>
-              <p className="text-gray-600">Téléchargez vos documents et précisez vos besoins.</p>
+              <h3 className="text-xl font-semibold mb-2">{t('homepage.submission')}</h3>
+              <p className="text-gray-600">{t('homepage.submissionDesc')}</p>
             </div>
             
             <div className="text-center">
               <div className="w-12 h-12 rounded-full bg-translation-700 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">3</div>
-              <h3 className="text-xl font-semibold mb-2">Traduction</h3>
-              <p className="text-gray-600">Nos experts traduisent votre contenu avec précision.</p>
+              <h3 className="text-xl font-semibold mb-2">{t('homepage.translation')}</h3>
+              <p className="text-gray-600">{t('homepage.translationDesc')}</p>
             </div>
             
             <div className="text-center">
               <div className="w-12 h-12 rounded-full bg-translation-700 text-white flex items-center justify-center mx-auto mb-4 text-xl font-bold">4</div>
-              <h3 className="text-xl font-semibold mb-2">Livraison</h3>
-              <p className="text-gray-600">Recevez vos traductions et téléchargez-les facilement.</p>
+              <h3 className="text-xl font-semibold mb-2">{t('homepage.delivery')}</h3>
+              <p className="text-gray-600">{t('homepage.deliveryDesc')}</p>
             </div>
           </div>
         </div>
@@ -138,13 +140,13 @@ const Index = () => {
       {/* CTA */}
       <section className="py-16 px-4 bg-translation-800 text-white">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">Prêt à démarrer votre projet ?</h2>
+          <h2 className="text-3xl font-bold mb-6">{t('homepage.ctaTitle')}</h2>
           <p className="text-xl mb-8">
-            Rejoignez-nous dès aujourd'hui et découvrez comment nous pouvons vous aider à communiquer efficacement à l'international.
+            {t('homepage.ctaSubtitle')}
           </p>
           <Link to="/signup">
             <Button size="lg" className="bg-white text-translation-900 hover:bg-translation-100">
-              Créer un compte gratuitement
+              {t('homepage.createAccount')}
             </Button>
           </Link>
         </div>
@@ -157,22 +159,22 @@ const Index = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Traduka</h3>
               <p className="text-gray-300">
-                Solution complète de gestion de projets de traduction pour les entreprises internationales.
+                {t('homepage.heroSubtitle')}
               </p>
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold mb-4">Liens rapides</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('homepage.quickLinks')}</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 hover:text-white">À propos</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">Services</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">Tarifs</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">Contact</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-white">{t('homepage.about')}</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-white">{t('homepage.services')}</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-white">{t('homepage.pricing')}</a></li>
+                <li><a href="#" className="text-gray-300 hover:text-white">{t('homepage.contact')}</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold mb-4">Contact</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('homepage.contactTitle')}</h3>
               <address className="not-italic text-gray-300">
                 <p>123 Rue de la Traduction</p>
                 <p>75000 Paris, France</p>
@@ -183,7 +185,7 @@ const Index = () => {
           </div>
           
           <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} Traduka. Tous droits réservés.</p>
+            <p>&copy; {new Date().getFullYear()} Traduka. {t('homepage.allRightsReserved')}</p>
           </div>
         </div>
       </footer>

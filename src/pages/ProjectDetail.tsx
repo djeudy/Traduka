@@ -8,8 +8,9 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Project, UserRole, Comment, ProjectStatus } from '@/types';
+import { Project, UserRole, Comment, ProjectStatus, Quote } from '@/types';
 import { projectService } from '@/services/projectService';
+import { quoteService } from '@/services/quoteService';
 import { ApiResponse } from '@/services/apiUtils';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
@@ -18,12 +19,18 @@ import DocumentList from '@/components/projects/DocumentList';
 import { TranslatorAssignment } from '@/components/projects/TranslatorAssignment';
 import StatusChanger from '@/components/projects/StatusChanger';
 import { useLanguage } from '@/contexts/LanguageContext';
+import QuoteCreator from '@/components/admin/QuoteCreator';
+import QuoteList from '@/components/admin/QuoteList';
+import PaymentManager from '@/components/admin/PaymentManager';
+import ProjectActions from '@/components/admin/ProjectActions';
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [loadingQuotes, setLoadingQuotes] = useState(false);
   const { t } = useLanguage();
   const [deletingProject, setDeletingProject] = useState(false);
   const { toast } = useToast();
@@ -46,7 +53,7 @@ const ProjectDetail = () => {
             setProject(response.data);
           } else {
             toast({
-              title: "Erreur",
+              title: t('generic.error'),
               description: response.error || t('dashboard.errorLoadProject'),
               variant: "destructive",
             });
@@ -56,7 +63,7 @@ const ProjectDetail = () => {
       } catch (error) {
         console.error('Error fetching project:', error);
         toast({
-          title: "Erreur",
+          title: t('generic.error'),
           description: t('dashboard.errorLoadProject'),
           variant: "destructive",
         });
@@ -66,8 +73,24 @@ const ProjectDetail = () => {
       }
     };
 
+    const fetchQuotes = async () => {
+      if (!id) return;
+      setLoadingQuotes(true);
+      try {
+        const response = await quoteService.getQuotesByProject(id);
+        if (response.data) {
+          setQuotes(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching quotes:', error);
+      } finally {
+        setLoadingQuotes(false);
+      }
+    };
+
     if (id) {
       fetchProject();
+      fetchQuotes();
     }
   }, [id, toast]);
   
@@ -88,10 +111,10 @@ const ProjectDetail = () => {
   
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'waiting': return 'En attente';
-      case 'in-progress': return 'En cours';
-      case 'review': return 'En révision';
-      case 'completed': return 'Terminé';
+      case 'waiting': return t('status.waiting');
+      case 'in-progress': return t('status.inProgress');
+      case 'review': return t('status.review');
+      case 'completed': return t('status.completed');
       default: return status;
     }
   };
@@ -204,6 +227,40 @@ const ProjectDetail = () => {
       });
     }
   };
+
+  const handleQuoteCreated = (newQuote: Quote) => {
+    setQuotes(prev => [newQuote, ...prev]);
+  };
+
+  const handleQuoteUpdated = (updatedQuote: Quote) => {
+    setQuotes(prev => prev.map(quote => 
+      quote.id === updatedQuote.id ? updatedQuote : quote
+    ));
+  };
+
+  const handlePaymentCreated = (newPayment: any) => {
+    if (project) {
+      setProject({
+        ...project,
+        payments: [...project.payments, newPayment]
+      });
+    }
+  };
+
+  const handlePaymentUpdated = (updatedPayment: any) => {
+    if (project) {
+      setProject({
+        ...project,
+        payments: project.payments.map(payment => 
+          payment.id === updatedPayment.id ? updatedPayment : payment
+        )
+      });
+    }
+  };
+
+  const handleProjectUpdated = (updatedProject: Project) => {
+    setProject(updatedProject);
+  };
   
   if (loading) {
     return (
@@ -239,10 +296,10 @@ const ProjectDetail = () => {
           
           <div className="text-gray-600">
             <span className="inline-block mr-4">
-              <span className="font-medium">{t('header.languages')} :</span> {project.source_language} → {project.target_language}
+              <span className="font-medium">{t('project.header.languages')}</span> {project.source_language} → {project.target_language}
             </span>
             <span className="inline-block">
-              <span className="font-medium">{t('header.languages')}:</span> {new Date(project.submitted_at).toLocaleDateString('fr-FR')}
+              <span className="font-medium">{t('project.header.submittedOn')}</span> {new Date(project.submitted_at).toLocaleDateString('fr-FR')}
             </span>
           </div>
         </div>
@@ -259,25 +316,33 @@ const ProjectDetail = () => {
             </div>
           )}
           
-          
+          {/* Bouton de paiement pour les clients */}
+          {user?.role === 'client' && project.client === user.id && (
+            <Button 
+              onClick={() => navigate(`/projects/${project.id}/payment`)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              💳 {t('project.paymentsTab.payNow')}
+            </Button>
+          )}
           
           {(user?.role === 'admin' || (user?.role === 'client' && project.client === user.id)) && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">
                   <FolderX className="h-4 w-4 mr-2" />
-                  Supprimer le projet
+                  {t('project.delete.button')}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce projet ?</AlertDialogTitle>
+                  <AlertDialogTitle>{t('project.delete.title')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Cette action est irréversible. Toutes les données associées à ce projet seront définitivement supprimées.
+                    {t('project.delete.description')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogCancel>{t('generic.cancel')}</AlertDialogCancel>
                   <AlertDialogAction 
                     onClick={handleDeleteProject}
                     className="bg-red-600 hover:bg-red-700"
@@ -285,7 +350,7 @@ const ProjectDetail = () => {
                   >
                     {deletingProject ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : 'Supprimer'}
+                    ) : t('project.delete.confirm')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -296,11 +361,12 @@ const ProjectDetail = () => {
       
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="mb-2">
-          <TabsTrigger value="overview">Aperçu</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="messages">Messages</TabsTrigger>
-          <TabsTrigger value="payments">Paiements</TabsTrigger>
-          {user?.role === 'admin' && <TabsTrigger value="admin">Administration</TabsTrigger>}
+          <TabsTrigger value="overview">{t('project.overview')}</TabsTrigger>
+          <TabsTrigger value="documents">{t('project.documents')}</TabsTrigger>
+          <TabsTrigger value="messages">{t('project.messages')}</TabsTrigger>
+          <TabsTrigger value="quotes">{t('project.quotes')}</TabsTrigger>
+          <TabsTrigger value="payments">{t('project.payments')}</TabsTrigger>
+          {user?.role === 'admin' && <TabsTrigger value="admin">{t('project.admin')}</TabsTrigger>}
         </TabsList>
         
         {/* Overview Tab */}
@@ -309,11 +375,11 @@ const ProjectDetail = () => {
             {/* Project Info */}
             <Card className="md:col-span-2">
               <CardHeader>
-                <CardTitle>Informations du projet</CardTitle>
+                <CardTitle>{t('project.projectInformation')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <div className="text-sm text-gray-500">Statut actuel</div>
+                  <div className="text-sm text-gray-500">{t('project.infoCard.currentStatus')}</div>
                   <div className="mt-1 flex items-center">
                     <div className={`w-3 h-3 rounded-full mr-2 ${
                       project.status === 'waiting' ? 'bg-yellow-400' :
@@ -326,37 +392,46 @@ const ProjectDetail = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <div className="text-sm text-gray-500">Langue source</div>
+                    <div className="text-sm text-gray-500">{t('project.infoCard.sourceLanguage')}</div>
                     <div className="mt-1 font-medium">{project.source_language}</div>
                   </div>
                   
                   <div>
-                    <div className="text-sm text-gray-500">Langue cible</div>
+                    <div className="text-sm text-gray-500">{t('project.infoCard.targetLanguage')}</div>
                     <div className="mt-1 font-medium">{project.target_language}</div>
                   </div>
                   
                   <div>
-                    <div className="text-sm text-gray-500">Date de soumission</div>
+                    <div className="text-sm text-gray-500">{t('project.infoCard.submittedAt')}</div>
                     <div className="mt-1 font-medium">{new Date(project.submitted_at).toLocaleDateString('fr-FR')}</div>
                   </div>
                   
                   {project.started_at && (
                     <div>
-                      <div className="text-sm text-gray-500">Date de début</div>
+                      <div className="text-sm text-gray-500">{t('project.infoCard.startedAt')}</div>
                       <div className="mt-1 font-medium">{new Date(project.started_at).toLocaleDateString('fr-FR')}</div>
                     </div>
+                  )}
+
+                  {project.instructions && (
+                  <div>
+                    <div className="text-sm text-gray-500">{t('project.specificInstructions')}</div>
+                    <div className="mt-1 p-3 bg-gray-50 rounded-md">
+                      <p className="text-sm whitespace-pre-wrap">{project.instructions}</p>
+                    </div>
+                  </div>
                   )}
                   
                   {project.estimated_completion_date && (
                     <div>
-                      <div className="text-sm text-gray-500">Livraison estimée</div>
+                      <div className="text-sm text-gray-500">{t('project.infoCard.estimatedDelivery')}</div>
                       <div className="mt-1 font-medium">{new Date(project.estimated_completion_date).toLocaleDateString('fr-FR')}</div>
                     </div>
                   )}
                   
                   {project.completed_at && (
                     <div>
-                      <div className="text-sm text-gray-500">Date de livraison</div>
+                      <div className="text-sm text-gray-500">{t('project.infoCard.completedAt')}</div>
                       <div className="mt-1 font-medium">{new Date(project.completed_at).toLocaleDateString('fr-FR')}</div>
                     </div>
                   )}
@@ -366,7 +441,7 @@ const ProjectDetail = () => {
                   <>
                     <Separator />
                     <div>
-                      <div className="text-sm text-gray-500 mb-2">Traducteur assigné</div>
+                      <div className="text-sm text-gray-500 mb-2">{t('project.infoCard.assignedTranslator')}</div>
                       <div className="flex items-center">
                         <Avatar className="h-10 w-10 mr-4">
                           <AvatarFallback className="bg-translation-100 text-translation-800">SM</AvatarFallback>
@@ -386,12 +461,12 @@ const ProjectDetail = () => {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Documents</CardTitle>
+                  <CardTitle>{t('project.documents')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">{project.documents.length}</div>
                   <p className="text-sm text-gray-500 mt-1">
-                    {project.status === 'completed' ? 'Tous les documents sont traduits' : 'Document(s) à traduire'}
+                    {project.status === 'completed' ? t('project.infoCard.allDocumentsTranslated') : t('project.infoCard.documentsToTranslate')}
                   </p>
                 </CardContent>
               </Card>
@@ -399,14 +474,14 @@ const ProjectDetail = () => {
               {project.payments.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Paiement</CardTitle>
+                    <CardTitle>{t('project.payments')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className={`text-3xl font-bold ${project.payments[0].status ? 'text-green-600' : 'text-yellow-600'}`}>
                       {project.payments[0].amount} €
                     </div>
                     <p className="text-sm text-gray-500 mt-1">
-                      {project.payments[0].status === 'completed' ? 'Payé le ' + new Date(project.payments[0].created_at).toLocaleDateString('fr-FR') : 'En attente de paiement'}
+                      {project.payments[0].status === 'completed' ? t('project.paymentsTab.paid') + ' ' + new Date(project.payments[0].created_at).toLocaleDateString('fr-FR') : t('project.paymentsTab.pending')}
                     </p>
                   </CardContent>
                 </Card>
@@ -417,9 +492,9 @@ const ProjectDetail = () => {
             {project.comments.length > 0 && (
               <Card className="md:col-span-3">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Messages récents</CardTitle>
+                  <CardTitle>{t('project.recentMessages.title')}</CardTitle>
                   <Button variant="ghost" asChild>
-                    <a href="#messages">Voir tous les messages</a>
+                    <a href="#messages">{t('project.recentMessages.seeAll')}</a>
                   </Button>
                 </CardHeader>
                 <CardContent>
@@ -457,7 +532,7 @@ const ProjectDetail = () => {
         <TabsContent value="documents">
            <Card>
             <CardHeader>
-              <CardTitle>Documents du projet</CardTitle>
+              <CardTitle>{t('project.documentsTab.title')}</CardTitle>
             </CardHeader>
             <CardContent>
               <DocumentList 
@@ -474,7 +549,7 @@ const ProjectDetail = () => {
         <TabsContent value="messages" id="messages">
           <Card>
             <CardHeader>
-              <CardTitle>Échanges et commentaires</CardTitle>
+              <CardTitle>{t('project.exchangesAndComments')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -512,7 +587,7 @@ const ProjectDetail = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">Aucun message pour le moment.</p>
+                    <p className="text-gray-500">{t('project.recentMessages.none')}</p>
                   </div>
                 )}
                 
@@ -525,7 +600,7 @@ const ProjectDetail = () => {
                   <div className="flex-1">
                     <div className="flex border rounded-md overflow-hidden">
                       <Input
-                        placeholder="Écrivez un message..."
+                        placeholder={t('project.recentMessages.sendPlaceholder')}
                         className="border-0 focus-visible:ring-0"
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
@@ -535,7 +610,7 @@ const ProjectDetail = () => {
                         className="rounded-none bg-translation-600 hover:bg-translation-700"
                         onClick={handleSendComment}
                       >
-                        Envoyer
+                        {t('project.recentMessages.send')}
                       </Button>
                     </div>
                   </div>
@@ -545,73 +620,50 @@ const ProjectDetail = () => {
           </Card>
         </TabsContent>
         
+        {/* Quotes Tab */}
+        <TabsContent value="quotes">
+          <div className="space-y-6">
+            {user?.role === 'admin' && (
+              <QuoteCreator 
+                projectId={project.id} 
+                onQuoteCreated={handleQuoteCreated}
+              />
+            )}
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('project.projectQuotes')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingQuotes ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  </div>
+                ) : (
+                  <QuoteList 
+                    projectId={project.id}
+                    quotes={quotes}
+                    onQuoteUpdated={handleQuoteUpdated}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
         {/* Payments Tab */}
         <TabsContent value="payments">
           <Card>
             <CardHeader>
-              <CardTitle>Paiements</CardTitle>
+              <CardTitle>{t('admin.paymentManagement')}</CardTitle>
             </CardHeader>
             <CardContent>
-              {project.payments.length > 0 ? (
-                <div className="space-y-6">
-                  {project.payments.map(payment => (
-                    <div key={payment.id} className="bg-white border rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <div className={`w-10 h-10 rounded flex items-center justify-center mr-3 ${
-                            payment.status === 'completed' ? 'bg-green-100' : 'bg-yellow-100'
-                          }`}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 ${
-                              payment.status === 'completed' ? 'text-green-600' : 'text-yellow-600'
-                            }`}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <div className="flex items-center">
-                              <h4 className="font-medium">Paiement du projet</h4>
-                              <Badge 
-                                variant="outline" 
-                                className={payment.status === 'completed' ? 
-                                  'ml-2 bg-green-100 text-green-800 border-green-200' : 
-                                  'ml-2 bg-yellow-100 text-yellow-800 border-yellow-200'
-                                }
-                              >
-                                {payment.status === 'completed' ? 'Payé' : 'En attente'}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-gray-500">
-                              {new Date(payment.created_at).toLocaleDateString('fr-FR')}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="text-xl font-bold">
-                          {payment.amount} {payment.currency}
-                        </div>
-                      </div>
-                      
-                      {payment.status !== 'completed' && (
-                        <div className="mt-4 flex justify-end">
-                          <Button className="bg-translation-600 hover:bg-translation-700">
-                            Procéder au paiement
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Aucun paiement pour ce projet.</p>
-                  <Button 
-                    className="mt-4 bg-translation-600 hover:bg-translation-700"
-                    onClick={() => navigate(`/projects/${project.id}/payment`)}
-                  >
-                    Voir les options de paiement
-                  </Button>
-                </div>
-              )}
+              <PaymentManager
+                projectId={project.id}
+                payments={project.payments}
+                onPaymentCreated={handlePaymentCreated}
+                onPaymentUpdated={handlePaymentUpdated}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -619,29 +671,28 @@ const ProjectDetail = () => {
         {/* Admin Tab - Only for admins */}
         {user?.role === 'admin' && (
           <TabsContent value="admin">
-            <Card>
-              <CardHeader>
-                <CardTitle>Administration du projet</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Translator Assignment Section */}
-                <TranslatorAssignment 
-                  projectId={project.id}
-                  currentTranslatorId={project.translator}
-                  onAssignSuccess={handleTranslatorAssigned}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('admin.projectActions')}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Translator Assignment Section */}
+                  <TranslatorAssignment 
+                    projectId={project.id}
+                    currentTranslatorId={project.translator}
+                    onAssignSuccess={handleTranslatorAssigned}
+                  />
+                </CardContent>
+              </Card>
+              
+              <div>
+                <ProjectActions 
+                  project={project}
+                  onProjectUpdated={handleProjectUpdated}
                 />
-                
-                <Separator />
-                
-                {/* Other admin tools could go here */}
-                <div>
-                  <h3 className="font-medium text-lg mb-2">Autres outils d'administration</h3>
-                  <p className="text-sm text-gray-500">
-                    D'autres fonctionnalités d'administration seront disponibles prochainement.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
         )}
       </Tabs>

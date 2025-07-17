@@ -4,6 +4,8 @@ import { ApiProject,Project, ProjectStatus } from '@/types';
 import { useUser } from '@/contexts/UserContext';
 import { projectService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
+
 
 export const useProjectFiltering = () => {
   const [projects, setProjects] = useState<ApiProject[]>([]);
@@ -13,6 +15,7 @@ export const useProjectFiltering = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const { user } = useUser();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const projectsPerPage = 5;
   
   useEffect(() => {
@@ -102,10 +105,10 @@ export const useProjectFiltering = () => {
   
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'waiting': return 'En attente';
-      case 'in-progress': return 'En cours';
-      case 'review': return 'En révision';
-      case 'completed': return 'Terminé';
+      case 'waiting': return 'status.waiting';
+      case 'in-progress': return t('status.inProgress');
+      case 'review': return 'status.review';
+      case 'completed': return 'status.completed';
       default: return status;
     }
   };

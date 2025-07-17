@@ -64,7 +64,18 @@ async function request<T>(
       if (newToken) {
         return request<T>(endpoint, options, false); // retry une seule fois
       } else {
-        return { error: 'Session expirée. Veuillez vous reconnecter.' };
+        // Ne pas afficher "session expirée" sur les endpoints d'auth
+        const isAuthEndpoint = endpoint.includes('/api/auth/');
+        if (isAuthEndpoint) {
+          // Pour les endpoints d'auth, on laisse l'erreur normale se propager
+          return await handleResponse<T>(response);
+        } else {
+          // Pour les autres endpoints, on indique que la session a expiré
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userData');
+          return { error: 'Session expirée. Veuillez vous reconnecter.' };
+        }
       }
     }
 
@@ -79,6 +90,16 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
   if (!response.ok) {
     try {
       const errorData = await response.json() as ApiError;
+      
+      // Pour les erreurs de validation, on retourne l'objet complet
+      // Cela permet au frontend de traiter les erreurs spécifiques par champ
+      if (response.status === 400 && errorData) {
+        // Si c'est un objet avec des champs d'erreur (ex: {"email": ["..."]})
+        if (typeof errorData === 'object' && !errorData.message && !errorData.detail) {
+          return { error: errorData };
+        }
+      }
+      
       return { error: errorData.message || errorData.detail || 'Une erreur est survenue' };
     } catch {
       return { error: `Erreur HTTP ${response.status}` };

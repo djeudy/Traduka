@@ -157,7 +157,7 @@ const SubmitProject = () => {
       }
 
       // Create a new project using the API service
-      const response = await projectService.createProject(user.id,projectName,sourceLanguage,targetLanguage);
+      const response = await projectService.createProject(user.id, projectName, sourceLanguage, targetLanguage, instructions, privateProject);
 
       if (response.error) {
         throw new Error(response.error);

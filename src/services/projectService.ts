@@ -21,8 +21,14 @@ const projectService = {
     return await get<Project>(`/api/projects/${projectId}/`);
   },
   
-  async createProject(clientId: number, name: string, sourceLanguage: string, targetLanguage: string): Promise<ApiResponse<ApiProject>> {
-    return await post<ApiProject>(`/api/projects/`, { name, source_language: sourceLanguage, target_language: targetLanguage });
+  async createProject(clientId: number, name: string, sourceLanguage: string, targetLanguage: string, instructions?: string, privateProject?: boolean): Promise<ApiResponse<ApiProject>> {
+    return await post<ApiProject>(`/api/projects/`, { 
+      name, 
+      source_language: sourceLanguage, 
+      target_language: targetLanguage,
+      instructions: instructions || '',
+      private_project: privateProject || false
+    });
   },
   
   async updateProject(projectId: string, project: Partial<ApiProject>) {
@@ -31,6 +37,10 @@ const projectService = {
   
   async patchProject(projectId: string, partialProject: Partial<ApiProject>) {
     return await patch<ApiProject>(`/api/projects/${projectId}/`, partialProject);
+  },
+  
+  async updateProjectStatus(projectId: string, status: string) {
+    return await patch<ApiProject>(`/api/projects/${projectId}/status/`, { status });
   },
   
   async deleteProject(projectId: string) {
